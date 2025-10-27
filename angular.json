@@ -7,27 +7,27 @@
       "projectType": "application",
       "schematics": {},
       "root": "",
-      "sourceRoot": "src",
+      "sourceRoot": "src/frontend",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "outputPath": "dist/smartstock-frontend",
-            "index": "src/index.html",
-            "main": "src/main.ts",
+            "index": "src/frontend/index.html",
+            "main": "src/frontend/main.ts",
             "polyfills": [
               "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "src/frontend/favicon.ico",
+              "src/frontend/assets"
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
-              "src/styles.css"
+              "src/frontend/styles.css"
             ],
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
@@ -87,11 +87,11 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "src/frontend/favicon.ico",
+              "src/frontend/assets"
             ],
             "styles": [
-              "src/styles.css"
+              "src/frontend/styles.css"
             ],
             "scripts": []
           }
