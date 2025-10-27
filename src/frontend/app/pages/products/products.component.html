@@ -1,0 +1,87 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-box-seam me-2"></i>Products</h1>
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <i class="bi bi-plus-circle me-2"></i>Add Product
+        </button>
+      </div>
+
+      <div class="row" *ngIf="products.length > 0; else noProducts">
+        <div class="col-md-6 col-lg-4 mb-4" *ngFor="let product of products">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">{{ product.name }}</h5>
+              <p class="card-text text-muted">{{ product.description }}</p>
+              <div class="row">
+                <div class="col-6">
+                  <small class="text-muted">Category</small>
+                  <p class="mb-1">{{ product.category }}</p>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted">Stock</small>
+                  <p class="mb-1">{{ product.stock }}</p>
+                </div>
+              </div>
+              <h4 class="text-primary">${{ product.price.toFixed(2) }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noProducts>
+        <div class="row">
+          <div class="col-12">
+            <div class="alert alert-info">
+              No products found. Add some products to get started.
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" [class.show]="showAddModal" [style.display]="showAddModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add New Product</h5>
+        <button type="button" class="btn-close" (click)="closeAddModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="productName" class="form-label">Name</label>
+            <input type="text" class="form-control" id="productName" [(ngModel)]="newProduct.name" name="name" required>
+          </div>
+          <div class="mb-3">
+            <label for="productDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="productDescription" rows="3" [(ngModel)]="newProduct.description" name="description" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="productPrice" class="form-label">Price</label>
+            <input type="number" class="form-control" id="productPrice" [(ngModel)]="newProduct.price" name="price" step="0.01" min="0" required>
+          </div>
+          <div class="mb-3">
+            <label for="productCategory" class="form-label">Category</label>
+            <input type="text" class="form-control" id="productCategory" [(ngModel)]="newProduct.category" name="category" required>
+          </div>
+          <div class="mb-3">
+            <label for="productStock" class="form-label">Stock</label>
+            <input type="number" class="form-control" id="productStock" [(ngModel)]="newProduct.stock" name="stock" min="0" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAddModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="saveProduct()">Save Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div class="modal-backdrop fade show" *ngIf="showAddModal"></div>
