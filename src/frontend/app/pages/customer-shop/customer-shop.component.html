@@ -1,0 +1,31 @@
+<div class="shop-container">
+  <h1>Shop Our Products</h1>
+
+  <div class="products-grid">
+    <div *ngFor="let product of products" class="product-card">
+
+      <div class="product-header">
+        <h3 class="product-name">{{ product.name }}</h3>
+        <span class="category">{{ product.category }}</span>
+      </div>
+
+      <p class="description">{{ product.description }}</p>
+
+      <p class="price">₹{{ product.price }}</p>
+
+      <!-- Add-to-cart / Quantity controls -->
+      <div *ngIf="!product.inCart; else qtyControls">
+        <button (click)="addToCart(product)" class="add-btn">Add to Cart</button>
+      </div>
+
+      <ng-template #qtyControls>
+        <div class="qty-controls">
+          <button (click)="decreaseQty(product)">−</button>
+          <span>{{ product.quantity }}</span>
+          <button (click)="increaseQty(product)" [disabled]="product.quantity! >= product.stock">+</button>
+        </div>
+        <small class="stock">Stock: {{ product.stock }}</small>
+      </ng-template>
+    </div>
+  </div>
+</div>
