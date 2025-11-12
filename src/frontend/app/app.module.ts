@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
@@ -13,6 +14,7 @@ import { OrdersComponent } from './pages/orders/orders.component';
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { CustomerShopComponent } from './pages/customer-shop/customer-shop.component';
+import { CartComponent } from './pages/cart/cart.component';
 
 @NgModule({
   declarations: [
@@ -24,10 +26,12 @@ import { CustomerShopComponent } from './pages/customer-shop/customer-shop.compo
     OrdersComponent,
     LoginComponent,
     DashboardComponent,
-    CustomerShopComponent
+    CustomerShopComponent,
+    CartComponent
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule

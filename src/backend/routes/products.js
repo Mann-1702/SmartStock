@@ -72,6 +72,22 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// PUT update stock after sales
+router.put('/updateStock', async (req, res) => {
+  try {
+    const { updates } = req.body;
+    for (const item of updates) {
+      await Product.findByIdAndUpdate(item._id, {
+        $inc: { stock: -item.quantitySold }
+      });
+    }
+    res.json({ message: 'Stock updated successfully' });
+  } catch (err) {
+    console.error('Error updating stock:', err);
+    res.status(500).json({ message: 'Error updating stock' });
+  }
+});
+
 // DELETE product
 router.delete('/:id', async (req, res) => {
   try {

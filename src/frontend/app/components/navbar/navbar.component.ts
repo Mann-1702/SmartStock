@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { CartService } from '../../services/cart.service';
 
 interface User {
   _id: string;
@@ -18,11 +19,23 @@ interface User {
 export class NavbarComponent implements OnInit {
   user: User | null = null;
   isManager = false;
+  cartCount = 0;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cartService: CartService) {}
 
   ngOnInit(): void {
     this.checkUser();
+    this.updateCartCount();
+    // Subscribe to cart changes
+    this.cartService.cart$.subscribe(cart => {
+      this.cartCount = cart.length;
+      console.log('Navbar cart count updated:', this.cartCount);
+    });
+  }
+
+  updateCartCount(): void {
+    this.cartCount = this.cartService.getCart().length;
+    console.log('Cart count updated:', this.cartCount);
   }
 
   checkUser(): void {
