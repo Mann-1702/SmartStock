@@ -1,0 +1,146 @@
+<div class="cart-container">
+  <!-- Cart Header -->
+  <div class="cart-header">
+    <h1>🛒 Your Shopping Cart</h1>
+    <p class="items-count">{{ totalQuantity }} item(s) in cart</p>
+  </div>
+
+  <!-- Cart Items Section (always show if items exist) -->
+  <div *ngIf="cart.length > 0">
+    <!-- Cart Items Section -->
+    <div class="cart-items-section">
+      <h2 class="section-title">Cart Items</h2>
+      
+      <div class="cart-items-list">
+        <div class="cart-item" *ngFor="let item of cart; let i = index">
+          <div class="item-details">
+            <h4 class="item-name">{{ item.name }}</h4>
+            <p class="item-category" *ngIf="item.category">{{ item.category }}</p>
+            <p class="item-description" *ngIf="item.description">{{ item.description }}</p>
+          </div>
+          
+          <div class="item-price">
+            <span class="price-label">Price:</span>
+            <span class="price-value">₹{{ item.price.toFixed(2) }}</span>
+          </div>
+
+          <div class="item-quantity">
+            <span class="qty-label">Qty:</span>
+            <input 
+              type="number" 
+              min="1" 
+              #qtyInput
+              [value]="item.quantity" 
+              (blur)="updateQuantity(item, +qtyInput.value)"
+              class="quantity-input">
+          </div>
+
+          <div class="item-total">
+            <span class="total-label">Subtotal:</span>
+            <span class="total-value">₹{{ (item.price * item.quantity).toFixed(2) }}</span>
+          </div>
+
+          <button class="remove-btn" (click)="removeItem(item)" title="Remove item">
+            <i class="bi bi-trash"></i> Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart Summary Section -->
+    <div class="cart-summary-section">
+      <div class="summary-box">
+        <h2>Order Summary</h2>
+        
+        <div class="summary-row">
+          <span class="summary-label">Subtotal:</span>
+          <span class="summary-value">₹{{ totalAmount.toFixed(2) }}</span>
+        </div>
+        
+        <div class="summary-row">
+          <span class="summary-label">Shipping:</span>
+          <span class="summary-value">Free</span>
+        </div>
+        
+        <div class="summary-row total-row">
+          <span class="summary-label"><strong>Grand Total:</strong></span>
+          <span class="summary-value"><strong>₹{{ totalAmount.toFixed(2) }}</strong></span>
+        </div>
+
+        <button class="checkout-btn" (click)="toggleCheckoutForm()">
+          {{ showCheckoutForm ? '✕ Cancel Checkout' : '→ Proceed to Checkout' }}
+        </button>
+        
+        <a routerLink="/customer-shop" class="continue-shopping-btn">
+          ← Continue Shopping
+        </a>
+      </div>
+
+      <!-- Checkout Form Section -->
+      <div *ngIf="showCheckoutForm" class="checkout-section">
+        <h2>Checkout Details</h2>
+        
+        <div class="checkout-form">
+          <div class="form-group">
+            <label for="customerName">Full Name *</label>
+            <input 
+              type="text" 
+              id="customerName" 
+              #nameInput
+              placeholder="Enter your full name"
+              class="form-control"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="customerEmail">Email Address *</label>
+            <input 
+              type="email" 
+              id="customerEmail" 
+              #emailInput
+              placeholder="Enter your email"
+              class="form-control"
+              required>
+          </div>
+
+          <div class="order-preview">
+            <h4>Order Preview</h4>
+            <div class="preview-items">
+              <div class="preview-item" *ngFor="let item of cart">
+                <div class="preview-name">{{ item.name }}</div>
+                <div class="preview-qty">x{{ item.quantity }}</div>
+                <div class="preview-subtotal">₹{{ (item.price * item.quantity).toFixed(2) }}</div>
+              </div>
+            </div>
+            
+            <div class="preview-total">
+              <span>Total Amount:</span>
+              <span class="amount">₹{{ totalAmount.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            class="place-order-btn" 
+            (click)="checkout()"
+            [disabled]="isProcessing">
+            <span *ngIf="!isProcessing">✓ Place Order</span>
+            <span *ngIf="isProcessing">
+              <i class="bi bi-hourglass-split"></i> Processing...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty Cart State (show if no items) -->
+  <div *ngIf="cart.length === 0" class="empty-cart-container">
+    <div class="empty-message">
+      <div class="empty-icon">🛒</div>
+      <h2>Your cart is empty</h2>
+      <p>Start shopping to add items to your cart</p>
+      <a routerLink="/customer-shop" class="shop-now-btn">Shop Now</a>
+    </div>
+  </div>
+</div>

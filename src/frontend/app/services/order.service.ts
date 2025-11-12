@@ -18,6 +18,17 @@ export interface Order {
   orderDate?: Date;
 }
 
+export interface CartCheckoutRequest {
+  customerName: string;
+  customerEmail: string;
+  cartItems: Array<{
+    _id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -36,5 +47,14 @@ export class OrderService {
 
   createOrder(order: Omit<Order, '_id' | 'orderDate'>): Observable<Order> {
     return this.http.post<Order>(this.apiUrl, order);
+  }
+
+  checkoutCart(customerName: string, customerEmail: string, cartItems: any[]): Observable<any> {
+    const payload: CartCheckoutRequest = {
+      customerName,
+      customerEmail,
+      cartItems
+    };
+    return this.http.post<any>(`${this.apiUrl}/checkout`, payload);
   }
 }
