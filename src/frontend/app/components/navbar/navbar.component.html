@@ -17,8 +17,24 @@
         <li class="nav-item">
           <a class="nav-link text-dark animate-fade-in" routerLink="/orders">Orders</a>
         </li>
-        <li class="nav-item ms-3">
+        <li class="nav-item">
+          <a class="nav-link text-dark animate-fade-in" routerLink="/dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item ms-3" *ngIf="!user">
           <a class="btn btn-purple text-white" routerLink="/login">Login</a>
+        </li>
+        <li class="nav-item ms-3" *ngIf="user">
+          <div class="dropdown">
+            <button class="btn btn-purple text-white dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              {{ user.name }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><span class="dropdown-item-text"><small>{{ user.email }}</small></span></li>
+              <li><span class="dropdown-item-text"><small>Role: {{ user.role }}</small></span></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><button class="dropdown-item" (click)="logout()">Logout</button></li>
+            </ul>
+          </div>
         </li>
       </ul>
     </div>

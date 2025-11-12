@@ -1,0 +1,171 @@
+<div class="container-fluid py-4">
+  <h1 class="mb-4">Manager Dashboard</h1>
+
+  <!-- ROW 1: Number Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-white bg-primary h-100">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">Total Inventory Value</h6>
+          <h2 class="card-title mb-0">${{ totalValue.toFixed(2) }}</h2>
+          <small><i class="bi bi-cash-stack"></i> Total worth</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card text-white bg-info h-100">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">Total Items</h6>
+          <h2 class="card-title mb-0">{{ totalItems }}</h2>
+          <small><i class="bi bi-box-seam"></i> Unique products</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card text-white bg-warning h-100">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2 text-dark">Low Stock Alerts</h6>
+          <h2 class="card-title mb-0 text-dark">{{ lowStockCount }}</h2>
+          <small class="text-dark"><i class="bi bi-exclamation-triangle-fill"></i> Need attention</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card text-white bg-danger h-100">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">Out of Stock</h6>
+          <h2 class="card-title mb-0">{{ outOfStockCount }}</h2>
+          <small><i class="bi bi-x-circle-fill"></i> Restock now!</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Bar Chart (Full Width) -->
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <div style="height: 350px;">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Line Chart + Top Selling Chart -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <div style="height: 300px;">
+            <canvas id="salesLineChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <div style="height: 300px;">
+            <canvas id="topSellingChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ROW 4: Complete Editable Data Table -->
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-table"></i> All Inventory Data (Click Edit to Modify)</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Item Name</th>
+                  <th>Category</th>
+                  <th>Stock</th>
+                  <th>Price</th>
+                  <th>Threshold</th>
+                  <th>Expiry Date</th>
+                  <th>Sold (Last Month)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of inventoryItems" [ngClass]="getStockStatusClass(item)">
+                  <td>{{ item.id }}</td>
+
+                  <!-- Editable Fields -->
+                  <td>
+                    <span *ngIf="!item.isEditing">{{ item.name }}</span>
+                    <input *ngIf="item.isEditing" type="text" class="form-control form-control-sm" [(ngModel)]="item.name">
+                  </td>
+
+                  <td>
+                    <span *ngIf="!item.isEditing">{{ item.category }}</span>
+                    <input *ngIf="item.isEditing" type="text" class="form-control form-control-sm" [(ngModel)]="item.category">
+                  </td>
+
+                  <td>
+                    <span *ngIf="!item.isEditing">{{ item.stock }}</span>
+                    <input *ngIf="item.isEditing" type="number" class="form-control form-control-sm" [(ngModel)]="item.stock">
+                  </td>
+
+                  <td>
+                    <span *ngIf="!item.isEditing">${{ item.price.toFixed(2) }}</span>
+                    <input *ngIf="item.isEditing" type="number" step="0.01" class="form-control form-control-sm" [(ngModel)]="item.price">
+                  </td>
+
+                  <td>
+                    <span *ngIf="!item.isEditing">{{ item.threshold }}</span>
+                    <input *ngIf="item.isEditing" type="number" class="form-control form-control-sm" [(ngModel)]="item.threshold">
+                  </td>
+
+                  <td>
+                    <span *ngIf="!item.isEditing">{{ item.expiryDate }}</span>
+                    <input *ngIf="item.isEditing" type="date" class="form-control form-control-sm" [(ngModel)]="item.expiryDate">
+                  </td>
+
+                  <td>{{ item.soldLastMonth }}</td>
+
+                  <td>
+                    <span [ngClass]="getBadgeClass(item)">
+                      {{ getStockStatus(item) }}
+                    </span>
+                  </td>
+
+                  <!-- Actions -->
+                  <td>
+                    <button *ngIf="!item.isEditing" class="btn btn-sm btn-outline-primary me-1" (click)="editItem(item)">
+                      <i class="bi bi-pencil"></i> Edit
+                    </button>
+                    <button *ngIf="item.isEditing" class="btn btn-sm btn-success me-1" (click)="saveItem(item)">
+                      <i class="bi bi-check"></i> Save
+                    </button>
+                    <button *ngIf="item.isEditing" class="btn btn-sm btn-secondary" (click)="cancelEdit(item)">
+                      <i class="bi bi-x"></i> Cancel
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
