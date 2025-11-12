@@ -9,6 +9,9 @@ export interface Product {
   price: number;
   category: string;
   stock: number;
+  threshold?: number;
+  expiryDate?: string;
+  soldLastMonth?: number;
   createdAt?: Date;
 }
 
@@ -30,5 +33,13 @@ export class ProductService {
 
   createProduct(product: Omit<Product, '_id' | 'createdAt'>): Observable<Product> {
     return this.http.post<Product>(this.apiUrl, product);
+  }
+
+  updateProduct(id: string, product: Partial<Product>): Observable<Product> {
+    return this.http.put<Product>(`${this.apiUrl}/${id}`, product);
+  }
+
+  deleteProduct(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

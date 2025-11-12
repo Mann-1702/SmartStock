@@ -31,6 +31,16 @@ const productSchema = new mongoose.Schema({
     min: 0,
     default: 10
   },
+  expiryDate: {
+    type: String,
+    required: false
+  },
+  soldLastMonth: {
+    type: Number,
+    required: false,
+    min: 0,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now

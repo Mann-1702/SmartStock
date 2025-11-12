@@ -33,7 +33,10 @@ router.post('/', async (req, res) => {
     description: req.body.description,
     price: req.body.price,
     category: req.body.category,
-    stock: req.body.stock
+    stock: req.body.stock,
+    threshold: req.body.threshold,
+    expiryDate: req.body.expiryDate,
+    soldLastMonth: req.body.soldLastMonth
   });
 
   try {
@@ -41,6 +44,46 @@ router.post('/', async (req, res) => {
     res.status(201).json(newProduct);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// PUT update product
+router.put('/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Update fields if provided
+    if (req.body.name != null) product.name = req.body.name;
+    if (req.body.description != null) product.description = req.body.description;
+    if (req.body.price != null) product.price = req.body.price;
+    if (req.body.category != null) product.category = req.body.category;
+    if (req.body.stock != null) product.stock = req.body.stock;
+    if (req.body.threshold != null) product.threshold = req.body.threshold;
+    if (req.body.expiryDate !== undefined) product.expiryDate = req.body.expiryDate;
+    if (req.body.soldLastMonth != null) product.soldLastMonth = req.body.soldLastMonth;
+
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// DELETE product
+router.delete('/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
