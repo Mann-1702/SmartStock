@@ -14,14 +14,14 @@ const orderRoutes = require('./routes/orders');
 dotenv.config();
 const app = express();
 
-// Middleware
+// CORS + Middleware
 app.use(cors({
   origin: 'http://localhost:4200',
   credentials: true,
 }));
 app.use(express.json());
 
-// Session Creation
+// Session setup
 app.use(session({
   secret: process.env.SESSION_SECRET || 'supersecret',
   resave: false,
@@ -31,10 +31,10 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// MongoDB Connection
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/smartstock')
   .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Google OAuth Strategy
 passport.use(new GoogleStrategy(
