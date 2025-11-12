@@ -1,18 +1,21 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
+import { ProductService } from '../../services/product.service';
 
 Chart.register(...registerables);
 
-// Interface for inventory items
+// Interface for inventory items (extended from Product)
 interface InventoryItem {
-  id: number;
+  _id?: string;
+  id?: number;
   name: string;
+  description?: string;
   category: string;
   stock: number;
   price: number;
-  threshold: number;
-  expiryDate: string;
-  soldLastMonth: number;
+  threshold?: number;
+  expiryDate?: string;
+  soldLastMonth?: number;
   isEditing?: boolean;
 }
 
@@ -22,24 +25,8 @@ interface InventoryItem {
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  // Hardcoded inventory data for general shop
-  inventoryItems: InventoryItem[] = [
-    { id: 1, name: 'Rice (5kg)', category: 'Food', stock: 45, price: 15.99, threshold: 20, expiryDate: '2025-06-15', soldLastMonth: 120 },
-    { id: 2, name: 'Cooking Oil (2L)', category: 'Food', stock: 8, price: 12.50, threshold: 15, expiryDate: '2025-03-20', soldLastMonth: 85 },
-    { id: 3, name: 'Sugar (2kg)', category: 'Food', stock: 30, price: 5.99, threshold: 25, expiryDate: '2026-01-10', soldLastMonth: 95 },
-    { id: 4, name: 'Bread', category: 'Fresh', stock: 12, price: 2.50, threshold: 20, expiryDate: '2024-11-05', soldLastMonth: 200 },
-    { id: 5, name: 'Milk (1L)', category: 'Fresh', stock: 0, price: 3.20, threshold: 30, expiryDate: '2024-11-02', soldLastMonth: 180 },
-    { id: 6, name: 'Eggs (dozen)', category: 'Fresh', stock: 15, price: 4.50, threshold: 25, expiryDate: '2024-11-08', soldLastMonth: 150 },
-    { id: 7, name: 'Chips (Large)', category: 'Snacks', stock: 60, price: 3.99, threshold: 30, expiryDate: '2025-02-20', soldLastMonth: 110 },
-    { id: 8, name: 'Biscuits Pack', category: 'Snacks', stock: 40, price: 2.99, threshold: 20, expiryDate: '2025-01-15', soldLastMonth: 90 },
-    { id: 9, name: 'Chocolate Bars', category: 'Snacks', stock: 25, price: 1.50, threshold: 40, expiryDate: '2025-04-10', soldLastMonth: 160 },
-    { id: 10, name: 'Water Bottles (12pk)', category: 'Drinks', stock: 35, price: 8.99, threshold: 25, expiryDate: '2025-08-01', soldLastMonth: 130 },
-    { id: 11, name: 'Soda (2L)', category: 'Drinks', stock: 5, price: 2.99, threshold: 20, expiryDate: '2025-03-15', soldLastMonth: 75 },
-    { id: 12, name: 'Juice Boxes (6pk)', category: 'Drinks', stock: 18, price: 5.50, threshold: 15, expiryDate: '2024-12-20', soldLastMonth: 65 },
-    { id: 13, name: 'Soap Bars', category: 'Daily Needs', stock: 50, price: 1.99, threshold: 30, expiryDate: '2027-01-01', soldLastMonth: 70 },
-    { id: 14, name: 'Toothpaste', category: 'Daily Needs', stock: 22, price: 4.50, threshold: 20, expiryDate: '2026-05-10', soldLastMonth: 55 },
-    { id: 15, name: 'Detergent (1kg)', category: 'Daily Needs', stock: 28, price: 8.99, threshold: 15, expiryDate: '2026-09-30', soldLastMonth: 60 }
-  ];
+  // Inventory items from MongoDB
+  inventoryItems: InventoryItem[] = [];
 
   // Chart instances
   categoryChart: Chart | null = null;
@@ -53,12 +40,52 @@ export class DashboardComponent implements OnInit, OnDestroy {
   outOfStockCount: number = 0;
   expiringItems: InventoryItem[] = [];
 
-  constructor() {}
+  constructor(private productService: ProductService) {}
 
   ngOnInit(): void {
-    this.calculateStats();
-    this.checkExpiringItems();
-    setTimeout(() => this.renderCharts(), 100);
+    this.loadProducts();
+  }
+
+  loadProducts(): void {
+    this.productService.getProducts().subscribe({
+      next: (products) => {
+        // Map MongoDB products to inventory items
+        this.inventoryItems = products.map((product, index) => {
+          // Generate synthetic soldLastMonth only for existing products without it
+          let soldLastMonth = product.soldLastMonth;
+          if (soldLastMonth === null || soldLastMonth === undefined) {
+            // Generate random value for existing products
+            soldLastMonth = Math.floor(Math.random() * 200);
+
+            // Update the product in MongoDB with the generated value
+            if (product._id) {
+              this.productService.updateProduct(product._id, { soldLastMonth }).subscribe({
+                error: (error) => console.error('Error updating soldLastMonth:', error)
+              });
+            }
+          }
+
+          return {
+            ...product,
+            id: index + 1,
+            threshold: product.threshold || 20,
+            expiryDate: product.expiryDate,
+            soldLastMonth
+          };
+        });
+
+        this.calculateStats();
+        this.checkExpiringItems();
+        setTimeout(() => this.renderCharts(), 100);
+      },
+      error: (error) => {
+        console.error('Error loading products:', error);
+        // Initialize with empty data on error
+        this.calculateStats();
+        this.checkExpiringItems();
+        setTimeout(() => this.renderCharts(), 100);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -70,7 +97,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   calculateStats(): void {
     this.totalValue = this.inventoryItems.reduce((sum, item) => sum + (item.price * item.stock), 0);
     this.totalItems = this.inventoryItems.length;
-    this.lowStockCount = this.inventoryItems.filter(item => item.stock > 0 && item.stock <= item.threshold).length;
+    this.lowStockCount = this.inventoryItems.filter(item =>
+      item.stock > 0 && item.threshold && item.stock <= item.threshold
+    ).length;
     this.outOfStockCount = this.inventoryItems.filter(item => item.stock === 0).length;
   }
 
@@ -80,6 +109,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     sevenDaysFromNow.setDate(today.getDate() + 7);
 
     this.expiringItems = this.inventoryItems.filter(item => {
+      if (!item.expiryDate) return false;
       const expiryDate = new Date(item.expiryDate);
       return expiryDate <= sevenDaysFromNow && expiryDate >= today;
     });
@@ -227,7 +257,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     // Get top 5 selling items
     const topItems = [...this.inventoryItems]
-      .sort((a, b) => b.soldLastMonth - a.soldLastMonth)
+      .sort((a, b) => (b.soldLastMonth || 0) - (a.soldLastMonth || 0))
       .slice(0, 5);
 
     this.topSellingChart = new Chart(ctx, {
@@ -236,7 +266,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         labels: topItems.map(item => item.name),
         datasets: [{
           label: 'Units Sold',
-          data: topItems.map(item => item.soldLastMonth),
+          data: topItems.map(item => item.soldLastMonth || 0),
           backgroundColor: 'rgba(255, 159, 64, 0.7)',
           borderColor: 'rgba(255, 159, 64, 1)',
           borderWidth: 2
@@ -268,43 +298,106 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Store original values before editing
+  private originalValues: Map<string, InventoryItem> = new Map();
+
   // Enable editing for a row
   editItem(item: InventoryItem): void {
+    // Store original values in case of cancel
+    if (item._id) {
+      this.originalValues.set(item._id, { ...item });
+    }
     item.isEditing = true;
   }
 
-  // Save edited item
+  // Save edited item to MongoDB
   saveItem(item: InventoryItem): void {
-    item.isEditing = false;
-    this.calculateStats();
-    this.checkExpiringItems();
-    // Refresh charts
-    setTimeout(() => this.renderCharts(), 100);
+    if (!item._id) {
+      alert('Cannot save item without ID');
+      return;
+    }
+
+    // Prepare update data
+    const updateData = {
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      stock: item.stock,
+      price: item.price,
+      threshold: item.threshold,
+      expiryDate: item.expiryDate,
+      soldLastMonth: item.soldLastMonth
+    };
+
+    this.productService.updateProduct(item._id, updateData).subscribe({
+      next: (updatedProduct) => {
+        item.isEditing = false;
+        this.originalValues.delete(item._id!);
+        this.calculateStats();
+        this.checkExpiringItems();
+        setTimeout(() => this.renderCharts(), 100);
+        alert('Product updated successfully!');
+      },
+      error: (error) => {
+        console.error('Error updating product:', error);
+        alert('Error updating product. Please try again.');
+      }
+    });
   }
 
-  // Cancel editing
+  // Cancel editing and restore original values
   cancelEdit(item: InventoryItem): void {
+    if (item._id && this.originalValues.has(item._id)) {
+      const original = this.originalValues.get(item._id)!;
+      Object.assign(item, original);
+      this.originalValues.delete(item._id);
+    }
     item.isEditing = false;
+  }
+
+  // Delete item from MongoDB
+  deleteItem(item: InventoryItem): void {
+    if (!item._id) {
+      alert('Cannot delete item without ID');
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+      this.productService.deleteProduct(item._id).subscribe({
+        next: () => {
+          // Remove from local array
+          this.inventoryItems = this.inventoryItems.filter(i => i._id !== item._id);
+          this.calculateStats();
+          this.checkExpiringItems();
+          setTimeout(() => this.renderCharts(), 100);
+          alert('Product deleted successfully!');
+        },
+        error: (error) => {
+          console.error('Error deleting product:', error);
+          alert('Error deleting product. Please try again.');
+        }
+      });
+    }
   }
 
   // Get stock status class for styling
   getStockStatusClass(item: InventoryItem): string {
     if (item.stock === 0) return 'table-danger';
-    if (item.stock <= item.threshold) return 'table-warning';
+    if (item.threshold && item.stock <= item.threshold) return 'table-warning';
     return '';
   }
 
   // Get stock status badge
   getStockStatus(item: InventoryItem): string {
     if (item.stock === 0) return 'OUT OF STOCK';
-    if (item.stock <= item.threshold) return 'LOW';
+    if (item.threshold && item.stock <= item.threshold) return 'LOW';
     return 'OK';
   }
 
   // Get badge class
   getBadgeClass(item: InventoryItem): string {
     if (item.stock === 0) return 'badge bg-danger';
-    if (item.stock <= item.threshold) return 'badge bg-warning text-dark';
+    if (item.threshold && item.stock <= item.threshold) return 'badge bg-warning text-dark';
     return 'badge bg-success';
   }
 

@@ -14,17 +14,37 @@
             <div class="card-body">
               <h5 class="card-title">{{ product.name }}</h5>
               <p class="card-text text-muted">{{ product.description }}</p>
-              <div class="row">
+              <div class="row mb-2">
                 <div class="col-6">
                   <small class="text-muted">Category</small>
                   <p class="mb-1">{{ product.category }}</p>
                 </div>
                 <div class="col-6">
                   <small class="text-muted">Stock</small>
-                  <p class="mb-1">{{ product.stock }}</p>
+                  <p class="mb-1" [ngClass]="{'text-danger': product.stock === 0, 'text-warning': product.threshold && product.stock <= product.threshold && product.stock > 0}">
+                    {{ product.stock }}
+                  </p>
                 </div>
               </div>
-              <h4 class="text-primary">${{ product.price.toFixed(2) }}</h4>
+              <div class="row mb-2" *ngIf="product.threshold || product.soldLastMonth">
+                <div class="col-6" *ngIf="product.threshold">
+                  <small class="text-muted">Threshold</small>
+                  <p class="mb-1">{{ product.threshold }}</p>
+                </div>
+                <div class="col-6" *ngIf="product.soldLastMonth">
+                  <small class="text-muted">Sold (Last Month)</small>
+                  <p class="mb-1">{{ product.soldLastMonth }}</p>
+                </div>
+              </div>
+              <h4 class="text-primary mb-3">${{ product.price.toFixed(2) }}</h4>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary flex-fill" (click)="openEditModal(product)">
+                  <i class="bi bi-pencil"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-outline-danger flex-fill" (click)="deleteProduct(product)">
+                  <i class="bi bi-trash"></i> Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -43,41 +63,65 @@
   </div>
 </div>
 
-<!-- Add Product Modal -->
+<!-- Add/Edit Product Modal -->
 <div class="modal fade" [class.show]="showAddModal" [style.display]="showAddModal ? 'block' : 'none'" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Add New Product</h5>
+        <h5 class="modal-title">{{ editingProduct ? 'Edit Product' : 'Add New Product' }}</h5>
         <button type="button" class="btn-close" (click)="closeAddModal()"></button>
       </div>
       <div class="modal-body">
         <form>
-          <div class="mb-3">
-            <label for="productName" class="form-label">Name</label>
-            <input type="text" class="form-control" id="productName" [(ngModel)]="newProduct.name" name="name" required>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="productName" class="form-label">Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="productName" [(ngModel)]="newProduct.name" name="name" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="productCategory" class="form-label">Category <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="productCategory" [(ngModel)]="newProduct.category" name="category" required>
+            </div>
           </div>
+
           <div class="mb-3">
-            <label for="productDescription" class="form-label">Description</label>
-            <textarea class="form-control" id="productDescription" rows="3" [(ngModel)]="newProduct.description" name="description" required></textarea>
+            <label for="productDescription" class="form-label">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="productDescription" rows="2" [(ngModel)]="newProduct.description" name="description" required></textarea>
           </div>
-          <div class="mb-3">
-            <label for="productPrice" class="form-label">Price</label>
-            <input type="number" class="form-control" id="productPrice" [(ngModel)]="newProduct.price" name="price" step="0.01" min="0" required>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="productPrice" class="form-label">Price ($) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="productPrice" [(ngModel)]="newProduct.price" name="price" step="0.01" min="0" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="productStock" class="form-label">Stock <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="productStock" [(ngModel)]="newProduct.stock" name="stock" min="0" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="productThreshold" class="form-label">Threshold</label>
+              <input type="number" class="form-control" id="productThreshold" [(ngModel)]="newProduct.threshold" name="threshold" min="0">
+            </div>
           </div>
-          <div class="mb-3">
-            <label for="productCategory" class="form-label">Category</label>
-            <input type="text" class="form-control" id="productCategory" [(ngModel)]="newProduct.category" name="category" required>
-          </div>
-          <div class="mb-3">
-            <label for="productStock" class="form-label">Stock</label>
-            <input type="number" class="form-control" id="productStock" [(ngModel)]="newProduct.stock" name="stock" min="0" required>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="productExpiryDate" class="form-label">Expiry Date (Optional)</label>
+              <input type="date" class="form-control" id="productExpiryDate" [(ngModel)]="newProduct.expiryDate" name="expiryDate">
+              <small class="text-muted">Leave empty if no expiry</small>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="productSold" class="form-label">Sold Last Month (Optional)</label>
+              <input type="number" class="form-control" id="productSold" [(ngModel)]="newProduct.soldLastMonth" name="soldLastMonth" min="0">
+            </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="closeAddModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" (click)="saveProduct()">Save Product</button>
+        <button type="button" class="btn btn-primary" (click)="saveProduct()">
+          {{ editingProduct ? 'Update Product' : 'Save Product' }}
+        </button>
       </div>
     </div>
   </div>
