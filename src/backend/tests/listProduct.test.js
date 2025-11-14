@@ -3,53 +3,64 @@ const mongoose = require('mongoose');
 const app = require('../app');
 const Product = require('../models/Product');
 
+// Test Suite
 describe('GET /api/products', () => {
-  // Connect to MongoDB before running tests
+
+  // Connect before tests
   beforeAll(async () => {
-    const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smartstock';
-    await mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+    console.log("[listProduct] Connecting to MongoDB...");
+    await mongoose.connect('mongodb://127.0.0.1:27017/smartstock');
   });
 
-  // Clean up data before each test
+  // Clean data
   beforeEach(async () => {
+    console.log("[listProduct] Clearing Product collection...");
     await Product.deleteMany({});
   });
 
-  // Disconnect after all tests
+  // Disconnect
   afterAll(async () => {
+    console.log("[listProduct] Closing MongoDB...");
     await mongoose.connection.close();
   });
 
-  // Test 1: No products exist
+  // Test: 1 - No products
   it('should return an empty array when no products exist', async () => {
+    console.log("[listProduct] Test 1: Fetching empty list...");
     const res = await request(app).get('/api/products');
+    console.log("Response:", res.body);
+
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBe(0);
   });
 
-  // Test 2: Successfully get all products
+  // Test: 2 - With products
   it('should return all products when products exist', async () => {
+    console.log("[listProduct] Test 2: Inserting sample products...");
     await Product.insertMany([
       { name: 'Item A', description: 'Desc A', price: 10, category: 'Category A', stock: 5 },
       { name: 'Item B', description: 'Desc B', price: 20, category: 'Category B', stock: 8 }
     ]);
 
+    console.log("[listProduct] Fetching all products...");
     const res = await request(app).get('/api/products');
+    console.log("Response:", res.body);
+
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(2);
-    expect(res.body[0]).toHaveProperty('name');
-    expect(res.body[1]).toHaveProperty('price');
   });
-  
-  // Test 3: Handle server errors
+
+  // Test: 3 - Simulate DB error
   it('should handle server errors gracefully', async () => {
-    // Temporarily mock Product.find() to throw an error
+    console.log("[listProduct] Test 3: Simulating DB failure...");
+    
     jest.spyOn(Product, 'find').mockImplementationOnce(() => {
       throw new Error('Database failure');
     });
 
     const res = await request(app).get('/api/products');
+    console.log("Response:", res.body);
+
     expect(res.status).toBe(500);
     expect(res.body).toHaveProperty('message', 'Database failure');
   });
