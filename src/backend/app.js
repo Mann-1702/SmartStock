@@ -2,7 +2,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const session = require('express-session');
 const passport = require('passport');
 const dotenv = require('dotenv');
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
@@ -18,18 +17,13 @@ const app = express();
 app.use(cors({
   origin: 'http://localhost:4200',
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET','POST','PUT','DELETE','OPTIONS']
 }));
 app.use(express.json());
 
-// Session setup
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'supersecret',
-  resave: false,
-  saveUninitialized: false,
-}));
-
+// Use passport without express session; we'll issue JWTs instead
 app.use(passport.initialize());
-app.use(passport.session());
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/smartstock')
