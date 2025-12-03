@@ -11,28 +11,35 @@
         <li class="nav-item">
           <a class="nav-link text-dark animate-fade-in" routerLink="/">Home</a>
         </li>
-        <li class="nav-item">
+        <!-- Products - Show only if logged in -->
+        <li class="nav-item" *ngIf="user">
           <a class="nav-link text-dark animate-fade-in" routerLink="/products">Products</a>
         </li>
-        <li class="nav-item">
+        <!-- Orders - Show only if logged in -->
+        <li class="nav-item" *ngIf="user">
           <a class="nav-link text-dark animate-fade-in" routerLink="/orders">Orders</a>
         </li>
-        <li class="nav-item">
+        <!-- Dashboard - Show only if logged in -->
+        <li class="nav-item" *ngIf="user">
           <a class="nav-link text-dark animate-fade-in" routerLink="/dashboard">Dashboard</a>
         </li>
-        <li class="nav-item">
+        <!-- Shop - Show only if logged in -->
+        <li class="nav-item" *ngIf="user">
           <a class="nav-link text-dark animate-fade-in" routerLink="/customer-shop">Shop</a>
         </li>
-        <li class="nav-item">
+        <!-- Cart - Show only if logged in -->
+        <li class="nav-item" *ngIf="user">
           <a class="nav-link text-dark animate-fade-in cart-link" routerLink="/cart">
             <i class="bi bi-cart"></i>
             Cart
             <span *ngIf="cartCount > 0" class="badge bg-danger rounded-pill">{{ cartCount }}</span>
           </a>
         </li>
+        <!-- Login Button - Show only if not logged in -->
         <li class="nav-item ms-3" *ngIf="!user">
           <a class="btn btn-purple text-white" routerLink="/login">Login</a>
         </li>
+        <!-- User Dropdown - Show only if logged in -->
         <li class="nav-item ms-3" *ngIf="user">
           <div class="dropdown">
             <button class="btn btn-purple text-white dropdown-toggle" type="button" data-bs-toggle="dropdown">
