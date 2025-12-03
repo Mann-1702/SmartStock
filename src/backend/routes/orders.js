@@ -1,5 +1,6 @@
 const express = require('express');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 
 const router = express.Router();
 
@@ -44,7 +45,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// POST checkout cart - create order from cart items
+// POST checkout cart - create order from cart items and update stock
 router.post('/checkout', async (req, res) => {
   try {
     const { customerName, customerEmail, cartItems } = req.body;
@@ -75,11 +76,25 @@ router.post('/checkout', async (req, res) => {
     });
 
     const newOrder = await order.save();
+    
+    try {
+      for (const item of cartItems) {
+        await Product.findByIdAndUpdate(
+          item._id,
+          { $inc: { stock: -item.quantity } },
+          { new: true }
+        );
+      }
+    } catch (stockError) {
+      console.error('Error updating stock:', stockError);
+      // Log error but don't fail the order - stock update is secondary
+    }
+    
     const populatedOrder = await newOrder.populate('products.productId');
     
     res.status(201).json({
       success: true,
-      message: 'Order created successfully',
+      message: 'Order created successfully and stock updated',
       order: populatedOrder
     });
   } catch (error) {

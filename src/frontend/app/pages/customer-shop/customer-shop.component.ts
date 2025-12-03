@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CartService } from '../../services/cart.service';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 interface Product {
   _id: string;
@@ -22,10 +24,18 @@ export class CustomerShopComponent implements OnInit {
   products: Product[] = [];
   cart: Product[] = [];
 
-  constructor(private http: HttpClient, private cartService: CartService) {}
+  constructor(private http: HttpClient, private cartService: CartService, private router: Router) {}
 
   ngOnInit(): void {
     this.loadProducts();
+    
+    // Reload products when user navigates back to shop page
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd && event.url === '/customer-shop')
+    ).subscribe(() => {
+      console.log('User navigated to customer-shop, reloading products...');
+      this.loadProducts();
+    });
   }
 
   // Load all products from backend
