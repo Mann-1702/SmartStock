@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { ProductService } from '../../services/product.service';
+import { AutoorderService, AutoOrder } from '../../services/autoorder.service';
 
 Chart.register(...registerables);
 
@@ -28,6 +29,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Inventory items from MongoDB
   inventoryItems: InventoryItem[] = [];
 
+  // Auto-order items
+  autoOrderItems: AutoOrder[] = [];
+
   // Chart instances
   categoryChart: Chart | null = null;
   salesLineChart: Chart | null = null;
@@ -40,10 +44,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   outOfStockCount: number = 0;
   expiringItems: InventoryItem[] = [];
 
-  constructor(private productService: ProductService) {}
+  constructor(private productService: ProductService, private autoorderService: AutoorderService) {}
 
   ngOnInit(): void {
     this.loadProducts();
+    this.loadAutoOrders();
   }
 
   loadProducts(): void {
@@ -84,6 +89,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.calculateStats();
         this.checkExpiringItems();
         setTimeout(() => this.renderCharts(), 100);
+      }
+    });
+  }
+
+  loadAutoOrders(): void {
+    this.autoorderService.getAutoOrders().subscribe({
+      next: (autoOrders) => {
+        this.autoOrderItems = autoOrders;
+      },
+      error: (error) => {
+        console.error('Error loading auto-orders:', error);
+        this.autoOrderItems = [];
       }
     });
   }
@@ -423,5 +440,52 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (daysUntilExpiry <= 3) return 'badge bg-danger';
     if (daysUntilExpiry <= 7) return 'badge bg-warning text-dark';
     return 'badge bg-secondary';
+  }
+
+  // Auto-order helper methods
+  updateAutoOrderStatus(autoOrder: AutoOrder, newStatus: string): void {
+    this.autoorderService.updateAutoOrderStatus(autoOrder._id!, newStatus).subscribe({
+      next: (updatedAutoOrder) => {
+        const index = this.autoOrderItems.findIndex(ao => ao._id === autoOrder._id);
+        if (index !== -1) {
+          this.autoOrderItems[index] = updatedAutoOrder;
+        }
+        alert(`Auto-order status updated to ${newStatus}`);
+      },
+      error: (error) => {
+        console.error('Error updating auto-order status:', error);
+        alert('Error updating auto-order status');
+      }
+    });
+  }
+
+  deleteAutoOrder(autoOrder: AutoOrder): void {
+    if (confirm(`Are you sure you want to delete this auto-order for ${autoOrder.productName}?`)) {
+      this.autoorderService.deleteAutoOrder(autoOrder._id!).subscribe({
+        next: () => {
+          this.autoOrderItems = this.autoOrderItems.filter(ao => ao._id !== autoOrder._id);
+          alert('Auto-order deleted successfully');
+        },
+        error: (error) => {
+          console.error('Error deleting auto-order:', error);
+          alert('Error deleting auto-order');
+        }
+      });
+    }
+  }
+
+  getAutoOrderStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'pending':
+        return 'badge bg-warning text-dark';
+      case 'ordered':
+        return 'badge bg-info';
+      case 'received':
+        return 'badge bg-success';
+      case 'cancelled':
+        return 'badge bg-danger';
+      default:
+        return 'badge bg-secondary';
+    }
   }
 }

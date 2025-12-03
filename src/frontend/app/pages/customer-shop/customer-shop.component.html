@@ -11,7 +11,7 @@
 
       <p class="description">{{ product.description }}</p>
 
-      <p class="price">₹{{ product.price }}</p>
+      <p class="price">${{ product.price }}</p>
 
       <!-- Add-to-cart / Quantity controls -->
       <div *ngIf="!product.inCart; else qtyControls">

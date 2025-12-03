@@ -81,7 +81,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.http.get<User>('http://localhost:3000/auth/user', { headers })
       .subscribe({
         next: (user) => {
-          console.log('Navbar: /auth/user response', user);
           this.user = user;
           // prefer explicit displayName from server, fallback to name or email local-part
           this.displayName = (user as any).displayName || user.name || (user.email ? user.email.split('@')[0] : 'User');
