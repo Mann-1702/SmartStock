@@ -174,4 +174,63 @@
     </div>
   </div>
 
+  <!-- ROW 5: Auto Reorder Section -->
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> Auto Reorder (Pending Vendor Orders)</h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="autoOrderItems.length === 0" class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No pending auto-orders at the moment. Orders will appear here when stock falls below threshold.
+          </div>
+          <div *ngIf="autoOrderItems.length > 0" class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Product Name</th>
+                  <th>Current Stock</th>
+                  <th>Threshold</th>
+                  <th>Order Quantity</th>
+                  <th>Order Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let autoOrder of autoOrderItems; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ autoOrder.productName }}</td>
+                  <td>{{ autoOrder.currentStock }}</td>
+                  <td>{{ autoOrder.threshold }}</td>
+                  <td><strong>{{ autoOrder.orderedQuantity }}</strong></td>
+                  <td>{{ autoOrder.orderDate | date: 'short' }}</td>
+                  <td>
+                    <span [ngClass]="getAutoOrderStatusBadgeClass(autoOrder.status)">
+                      {{ autoOrder.status | uppercase }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-info me-1" 
+                      (click)="updateAutoOrderStatus(autoOrder, 'received')"
+                      title="Mark as received from vendor">
+                      <i class="bi bi-box-seam"></i> Mark Received
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" 
+                      (click)="deleteAutoOrder(autoOrder)"
+                      title="Delete this auto-order">
+                      <i class="bi bi-trash"></i> Delete
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>

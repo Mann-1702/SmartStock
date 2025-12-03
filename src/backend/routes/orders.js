@@ -1,5 +1,7 @@
 const express = require('express');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
+const AutoOrder = require('../models/AutoOrder');
 
 const router = express.Router();
 
@@ -44,7 +46,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// POST checkout cart - create order from cart items
+// POST checkout cart - create order from cart items and update stock
 router.post('/checkout', async (req, res) => {
   try {
     const { customerName, customerEmail, cartItems } = req.body;
@@ -75,11 +77,50 @@ router.post('/checkout', async (req, res) => {
     });
 
     const newOrder = await order.save();
+    
+    try {
+      for (const item of cartItems) {
+        const product = await Product.findByIdAndUpdate(
+          item._id,
+          { $inc: { stock: -item.quantity } },
+          { new: true }
+        );
+
+        // Check if stock is now below threshold and create auto-order
+        if (product && product.stock < product.threshold) {
+          const orderedQuantity = product.threshold - product.stock;
+          
+          // Check if there's already a pending auto-order for this product
+          const existingAutoOrder = await AutoOrder.findOne({
+            productId: product._id,
+            status: 'pending'
+          });
+
+          if (!existingAutoOrder) {
+            const autoOrder = new AutoOrder({
+              productId: product._id,
+              productName: product.name,
+              orderedQuantity: orderedQuantity,
+              currentStock: product.stock,
+              threshold: product.threshold,
+              status: 'ordered'
+            });
+
+            await autoOrder.save();
+            console.log(`Auto-order created and placed with vendor for product: ${product.name}, Quantity: ${orderedQuantity}`);
+          }
+        }
+      }
+    } catch (stockError) {
+      console.error('Error updating stock or creating auto-order:', stockError);
+      // Log error but don't fail the order - stock update is secondary
+    }
+    
     const populatedOrder = await newOrder.populate('products.productId');
     
     res.status(201).json({
       success: true,
-      message: 'Order created successfully',
+      message: 'Order created successfully and stock updated',
       order: populatedOrder
     });
   } catch (error) {

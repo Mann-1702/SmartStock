@@ -44,7 +44,6 @@ router.get('/user', verifyToken, async (req, res) => {
     // Provide a displayName fallback if name is missing (but prefer DB name)
     const finalDisplayName = (name && name.trim()) ? name : (displayName || (email ? email.split('@')[0] : 'User'));
     const response = { _id, googleId, name, displayName: finalDisplayName, email, role, storeId };
-    console.log('[authRoute] /user response:', response);
     res.json(response);
 });
 

@@ -21,7 +21,7 @@
           
           <div class="item-price">
             <span class="price-label">Price:</span>
-            <span class="price-value">₹{{ item.price.toFixed(2) }}</span>
+            <span class="price-value">${{ item.price.toFixed(2) }}</span>
           </div>
 
           <div class="item-quantity">
@@ -37,7 +37,7 @@
 
           <div class="item-total">
             <span class="total-label">Subtotal:</span>
-            <span class="total-value">₹{{ (item.price * item.quantity).toFixed(2) }}</span>
+            <span class="total-value">${{ (item.price * item.quantity).toFixed(2) }}</span>
           </div>
 
           <button class="remove-btn" (click)="removeItem(item)" title="Remove item">
@@ -54,7 +54,7 @@
         
         <div class="summary-row">
           <span class="summary-label">Subtotal:</span>
-          <span class="summary-value">₹{{ totalAmount.toFixed(2) }}</span>
+          <span class="summary-value">${{ totalAmount.toFixed(2) }}</span>
         </div>
         
         <div class="summary-row">
@@ -64,7 +64,7 @@
         
         <div class="summary-row total-row">
           <span class="summary-label"><strong>Grand Total:</strong></span>
-          <span class="summary-value"><strong>₹{{ totalAmount.toFixed(2) }}</strong></span>
+          <span class="summary-value"><strong>${{ totalAmount.toFixed(2) }}</strong></span>
         </div>
 
         <button class="checkout-btn" (click)="toggleCheckoutForm()">
@@ -109,13 +109,13 @@
               <div class="preview-item" *ngFor="let item of cart">
                 <div class="preview-name">{{ item.name }}</div>
                 <div class="preview-qty">x{{ item.quantity }}</div>
-                <div class="preview-subtotal">₹{{ (item.price * item.quantity).toFixed(2) }}</div>
+                <div class="preview-subtotal">${{ (item.price * item.quantity).toFixed(2) }}</div>
               </div>
             </div>
             
             <div class="preview-total">
               <span>Total Amount:</span>
-              <span class="amount">₹{{ totalAmount.toFixed(2) }}</span>
+              <span class="amount">${{ totalAmount.toFixed(2) }}</span>
             </div>
           </div>
 

@@ -99,25 +99,33 @@ export class CartComponent implements OnInit, OnDestroy {
       quantity: item.quantity
     }));
 
-    // Call the checkout endpoint
+    // Call the checkout endpoint (which also updates stock on backend)
     this.orderService.checkoutCart(name, email, cartItems).subscribe({
       next: (response) => {
         alert('Order placed successfully! Order ID: ' + response.order._id);
         
-        // Clear cart
+        // Clear cart after successful order and stock update
         this.cartService.clearCart();
         this.cart = [];
         this.totalAmount = 0;
         this.totalQuantity = 0;
         this.showCheckoutForm = false;
         this.isProcessing = false;
+        
+        // Reset form inputs
+        if (this.nameInput) this.nameInput.nativeElement.value = '';
+        if (this.emailInput) this.emailInput.nativeElement.value = '';
 
-        // Redirect to orders page or dashboard
-        this.router.navigate(['/orders']);
+        // Small delay to ensure backend has processed stock updates
+        setTimeout(() => {
+          // Redirect to customer shop so they can see updated stock
+          this.router.navigate(['/customer-shop']);
+        }, 500);
       },
       error: (error) => {
         console.error('Checkout error:', error);
-        alert('Error placing order: ' + (error.error?.message || 'Please try again'));
+        const errorMessage = error.error?.message || 'Please try again';
+        alert('Error placing order: ' + errorMessage);
         this.isProcessing = false;
       }
     });

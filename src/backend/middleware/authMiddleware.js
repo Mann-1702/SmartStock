@@ -18,8 +18,6 @@ module.exports = async function verifyToken(req, res, next) {
 
     // Load full user from DB
     const user = await User.findById(payload.id).select('-__v');
-    console.log('[authMiddleware] token payload:', { id: payload.id, exp: payload.exp });
-    console.log('[authMiddleware] loaded user:', user ? { id: user._id, name: user.name, email: user.email } : null);
     if (!user) return res.status(401).json({ error: 'User not found' });
 
     req.user = user;
