@@ -46,6 +46,43 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT update order
+router.put('/:id', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Update fields if provided
+    if (req.body.customerName != null) order.customerName = req.body.customerName;
+    if (req.body.customerEmail != null) order.customerEmail = req.body.customerEmail;
+    if (req.body.products != null) order.products = req.body.products;
+    if (req.body.totalAmount != null) order.totalAmount = req.body.totalAmount;
+    if (req.body.status != null) order.status = req.body.status;
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// DELETE order
+router.delete('/:id', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    await Order.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Order deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // POST checkout cart - create order from cart items and update stock
 router.post('/checkout', async (req, res) => {
   try {

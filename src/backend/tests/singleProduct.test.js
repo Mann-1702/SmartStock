@@ -3,26 +3,9 @@ const mongoose = require('mongoose');
 const app = require('../app');
 const Product = require('../models/Product');
 
-// Connect before tests
-beforeAll(async () => {
-  console.log("[singleProduct] Connecting to MongoDB...");
-  await mongoose.connect('mongodb://127.0.0.1:27017/smartstock');
-});
-
-// Clean data
-beforeEach(async () => {
-  console.log("[singleProduct] Clearing Product collection...");
-  await Product.deleteMany({});
-});
-
-// Disconnect
-afterAll(async () => {
-  console.log("[singleProduct] Closing MongoDB...");
-  await mongoose.connection.close();
-});
-
 // Test Suite
 describe('GET /api/products/:id', () => {
+  // Tests run with shared setup from tests/setup.js
   let product;
 
   // Test product
