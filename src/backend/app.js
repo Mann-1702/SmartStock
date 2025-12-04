@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(passport.initialize());
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb+srv://nayanpmakwana_db_user:Yx25eZZIEAUX9GSJ@smartstock-cluster.qihmszw.mongodb.net/?appName=smartstock-cluster')
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
