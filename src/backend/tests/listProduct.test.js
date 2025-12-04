@@ -5,24 +5,7 @@ const Product = require('../models/Product');
 
 // Test Suite
 describe('GET /api/products', () => {
-
-  // Connect before tests
-  beforeAll(async () => {
-    console.log("[listProduct] Connecting to MongoDB...");
-    await mongoose.connect('mongodb://127.0.0.1:27017/smartstock');
-  });
-
-  // Clean data
-  beforeEach(async () => {
-    console.log("[listProduct] Clearing Product collection...");
-    await Product.deleteMany({});
-  });
-
-  // Disconnect
-  afterAll(async () => {
-    console.log("[listProduct] Closing MongoDB...");
-    await mongoose.connection.close();
-  });
+  // Tests run with shared setup from tests/setup.js
 
   // Test: 1 - No products
   it('should return an empty array when no products exist', async () => {

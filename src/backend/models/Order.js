@@ -43,6 +43,8 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+}, {
+  timestamps: true  // Adds createdAt and updatedAt fields
 });
 
 module.exports = mongoose.model('Order', orderSchema);
