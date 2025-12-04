@@ -93,7 +93,8 @@
             "styles": [
               "src/frontend/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "karmaConfig": "karma.conf.js"
           }
         }
       }
