@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { ProductService } from '../../services/product.service';
-import { AutoorderService, AutoOrder } from '../../services/autoorder.service';
+import { AutoOrderService, AutoOrder } from '../../services/autoorder.service';
 
 Chart.register(...registerables);
 
@@ -44,7 +44,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   outOfStockCount: number = 0;
   expiringItems: InventoryItem[] = [];
 
-  constructor(private productService: ProductService, private autoorderService: AutoorderService) {}
+  constructor(private productService: ProductService, private autoorderService: AutoOrderService) {}
 
   ngOnInit(): void {
     this.loadProducts();
@@ -65,7 +65,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             // Update the product in MongoDB with the generated value
             if (product._id) {
               this.productService.updateProduct(product._id, { soldLastMonth }).subscribe({
-                error: (error) => console.error('Error updating soldLastMonth:', error)
+                error: (error: any) => console.error('Error updating soldLastMonth:', error)
               });
             }
           }
@@ -95,10 +95,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   loadAutoOrders(): void {
     this.autoorderService.getAutoOrders().subscribe({
-      next: (autoOrders) => {
+      next: (autoOrders: AutoOrder[]) => {
         this.autoOrderItems = autoOrders;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading auto-orders:', error);
         this.autoOrderItems = [];
       }
@@ -445,14 +445,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Auto-order helper methods
   updateAutoOrderStatus(autoOrder: AutoOrder, newStatus: string): void {
     this.autoorderService.updateAutoOrderStatus(autoOrder._id!, newStatus).subscribe({
-      next: (updatedAutoOrder) => {
+      next: (updatedAutoOrder: AutoOrder) => {
         const index = this.autoOrderItems.findIndex(ao => ao._id === autoOrder._id);
         if (index !== -1) {
           this.autoOrderItems[index] = updatedAutoOrder;
         }
         alert(`Auto-order status updated to ${newStatus}`);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error updating auto-order status:', error);
         alert('Error updating auto-order status');
       }
@@ -466,7 +466,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.autoOrderItems = this.autoOrderItems.filter(ao => ao._id !== autoOrder._id);
           alert('Auto-order deleted successfully');
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error deleting auto-order:', error);
           alert('Error deleting auto-order');
         }
