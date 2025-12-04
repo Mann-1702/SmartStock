@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { ConfigService } from '../../services/config.service';
 
 interface UserInfo {
   _id?: string;
@@ -24,7 +25,7 @@ export class PricingComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private config: ConfigService) {}
 
   onPlanClick(event: Event, type: string, addCount?: number): void {
     // If the clicked plan is already active, prevent further action
@@ -58,13 +59,13 @@ export class PricingComponent implements OnInit {
     }
     this.loading = true;
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    this.http.get<UserInfo>('http://localhost:3000/auth/user', { headers }).subscribe({
+    this.http.get<UserInfo>(`${this.config.getApiUrl()}/auth/user`, { headers }).subscribe({
       next: (u) => {
         this.currentPlan = u.plan || 'free';
         this.skuCount = u.skuCount || 0;
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         console.warn('Pricing: failed to fetch user', err);
         this.error = 'Could not load current plan.';
         this.loading = false;
