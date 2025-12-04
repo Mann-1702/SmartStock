@@ -27,10 +27,12 @@ export interface AutoOrderStats {
 @Injectable({
   providedIn: 'root'
 })
-export class AutoorderService {
-  private apiUrl = 'http://localhost:3000/api/autoorders';
+export class AutoOrderService {
+  private apiUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private config: ConfigService) {
+    this.apiUrl = `${this.config.getApiUrl()}/api/autoorders`;
+  }
 
   getAutoOrders(): Observable<AutoOrder[]> {
     return this.http.get<AutoOrder[]>(this.apiUrl);

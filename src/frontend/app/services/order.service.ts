@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ConfigService } from './config.service';
 
 export interface OrderProduct {
   productId: string;
@@ -33,9 +34,11 @@ export interface CartCheckoutRequest {
   providedIn: 'root'
 })
 export class OrderService {
-  private apiUrl = 'http://localhost:3000/api/orders';
+  private apiUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private config: ConfigService) {
+    this.apiUrl = `${this.config.getApiUrl()}/api/orders`;
+  }
 
   getOrders(): Observable<Order[]> {
     return this.http.get<Order[]>(this.apiUrl);
