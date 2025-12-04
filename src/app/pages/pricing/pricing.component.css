@@ -1,0 +1,17 @@
+.card {
+  margin-bottom: 20px;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+}
+
+.card-title {
+  margin-bottom: 0;
+}
+
+.card-price {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}

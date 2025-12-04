@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoute');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const autoOrderRoutes = require('./routes/autoorders');
+const paymentRoutes = require('./routes/payment');
 
 dotenv.config();
 const app = express();
@@ -70,6 +71,7 @@ app.use('/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/autoorders', autoOrderRoutes);
+app.use('/api/payment', paymentRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to SmartStock Backend API' });

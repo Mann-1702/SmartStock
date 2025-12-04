@@ -11,6 +11,9 @@
         <li class="nav-item">
           <a class="nav-link text-dark animate-fade-in" routerLink="/">Home</a>
         </li>
+        <li class="nav-item" *ngIf="user">
+          <a class="nav-link text-dark animate-fade-in" routerLink="/pricing">Pricing</a>
+        </li>
         <!-- Products - Show only if logged in -->
         <li class="nav-item" *ngIf="user">
           <a class="nav-link text-dark animate-fade-in" routerLink="/products">Products</a>
