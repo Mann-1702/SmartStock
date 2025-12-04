@@ -15,6 +15,7 @@
     "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.8.7",
+    "nodemailer": "^7.0.11",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
   },
@@ -32,7 +33,9 @@
       "^.+\\.jsx?$": "babel-jest"
     },
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["./tests/setup.js"],
+    "setupFilesAfterEnv": [
+      "./tests/setup.js"
+    ],
     "testTimeout": 30000
   },
   "keywords": [

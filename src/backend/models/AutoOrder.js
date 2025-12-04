@@ -39,6 +39,22 @@ const autoOrderSchema = new mongoose.Schema({
   notes: {
     type: String,
     required: false
+  },
+  managerEmail: {
+    type: String,
+    required: false
+  },
+  managerName: {
+    type: String,
+    required: false
+  },
+  emailNotificationSent: {
+    type: Boolean,
+    default: false
+  },
+  emailNotificationDate: {
+    type: Date,
+    required: false
   }
 });
 

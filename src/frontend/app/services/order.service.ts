@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface OrderProduct {
@@ -50,11 +50,13 @@ export class OrderService {
   }
 
   checkoutCart(customerName: string, customerEmail: string, cartItems: any[]): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = token ? new HttpHeaders({ 'Authorization': `Bearer ${token}` }) : undefined;
     const payload: CartCheckoutRequest = {
       customerName,
       customerEmail,
       cartItems
     };
-    return this.http.post<any>(`${this.apiUrl}/checkout`, payload);
+    return this.http.post<any>(`${this.apiUrl}/checkout`, payload, { headers });
   }
 }
