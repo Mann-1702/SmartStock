@@ -127,4 +127,43 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// TEST ENDPOINT - Send test email for debugging
+router.post('/test/send-email', async (req, res) => {
+  try {
+    const { recipientEmail, recipientName } = req.body;
+
+    if (!recipientEmail || !recipientName) {
+      return res.status(400).json({ 
+        message: 'Missing required fields: recipientEmail, recipientName' 
+      });
+    }
+
+    const { sendAutoOrderNotification } = require('../services/emailService');
+    
+    const testAutoOrderData = {
+      productName: 'Test Product',
+      orderedQuantity: 50,
+      currentStock: 5,
+      threshold: 20
+    };
+
+    const emailResult = await sendAutoOrderNotification(
+      recipientEmail,
+      recipientName,
+      testAutoOrderData
+    );
+
+    res.json({
+      success: true,
+      message: 'Test email endpoint called',
+      emailResult: emailResult
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
+  }
+});
+
 module.exports = router;

@@ -2,6 +2,9 @@ const express = require('express');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const AutoOrder = require('../models/AutoOrder');
+const User = require('../models/UserModel');
+const authMiddleware = require('../middleware/authMiddleware');
+const { sendAutoOrderNotification } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -84,9 +87,10 @@ router.delete('/:id', async (req, res) => {
 });
 
 // POST checkout cart - create order from cart items and update stock
-router.post('/checkout', async (req, res) => {
+router.post('/checkout', authMiddleware, async (req, res) => {
   try {
     const { customerName, customerEmail, cartItems } = req.body;
+    const loggedInUser = req.user; // Get the authenticated user
 
     // Validate required fields
     if (!customerName || !customerEmail || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -140,11 +144,43 @@ router.post('/checkout', async (req, res) => {
               orderedQuantity: orderedQuantity,
               currentStock: product.stock,
               threshold: product.threshold,
-              status: 'ordered'
+              status: 'ordered',
+              managerEmail: loggedInUser.email,
+              managerName: loggedInUser.name,
+              emailNotificationSent: false
             });
 
-            await autoOrder.save();
+            const savedAutoOrder = await autoOrder.save();
             console.log(`Auto-order created and placed with vendor for product: ${product.name}, Quantity: ${orderedQuantity}`);
+
+            // Send email notification to the logged-in employee/manager
+            try {
+              const autoOrderData = {
+                productName: product.name,
+                orderedQuantity: orderedQuantity,
+                currentStock: product.stock,
+                threshold: product.threshold
+              };
+
+              const emailResult = await sendAutoOrderNotification(
+                loggedInUser.email,
+                loggedInUser.name,
+                autoOrderData
+              );
+
+              if (emailResult.success) {
+                console.log(`📧 Auto-order notification sent to ${loggedInUser.email}`);
+              } else {
+                console.warn(`⚠️ Failed to send notification to ${loggedInUser.email}:`, emailResult.reason);
+              }
+
+              // Mark email as sent in the auto-order record
+              savedAutoOrder.emailNotificationSent = true;
+              savedAutoOrder.emailNotificationDate = new Date();
+              await savedAutoOrder.save();
+            } catch (emailError) {
+              console.error(`Error sending email to ${loggedInUser.email}:`, emailError.message);
+            }
           }
         }
       }
