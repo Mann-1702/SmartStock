@@ -1,0 +1,45 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Payment</h4>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="payNow()">
+            <div class="mb-3">
+              <label for="cardNumber" class="form-label">Card Number</label>
+              <input type="tel" maxlength="19" pattern="\d*" class="form-control" id="cardNumber" [(ngModel)]="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456">
+              <div class="form-text">Enter 16 digits. Spaces allowed for readability.</div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="expiryDate" class="form-label">Expiry Date</label>
+                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" [(ngModel)]="expiryDate" name="expiryDate">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="cvc" class="form-label">CVC</label>
+                <input type="text" class="form-control" id="cvc" [(ngModel)]="cvc" name="cvc">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" [disabled]="isProcessing">Pay Now</button>
+          </form>
+            <div *ngIf="message" [ngClass]="{'alert': true, 'mt-3': true, 'alert-danger': isError, 'alert-success': !isError}" role="alert">
+              {{ message }}
+            </div>
+
+            <!-- Simple modal popup (no external JS) -->
+            <div *ngIf="showModal" class="payment-modal-overlay">
+              <div class="payment-modal">
+                <h5>Payment</h5>
+                <p>{{ modalMessage }}</p>
+                <div class="text-end">
+                  <button class="btn btn-sm btn-secondary" (click)="closeModal()">Close</button>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

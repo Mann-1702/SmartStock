@@ -40,10 +40,10 @@ router.get('/logout', async (req, res) => {
 router.get('/user', verifyToken, async (req, res) => {
   // If verifyToken passed, req.user is a full user document
   // Return safe user details for frontend
-    const { _id, googleId, name, email, role, storeId } = req.user;
-    // Provide a displayName fallback if name is missing (but prefer DB name)
-    const finalDisplayName = (name && name.trim()) ? name : (displayName || (email ? email.split('@')[0] : 'User'));
-    const response = { _id, googleId, name, displayName: finalDisplayName, email, role, storeId };
+    const { _id, googleId, name, email, role, storeId, plan, skuCount } = req.user;
+    // Provide a displayName fallback if name is missing (prefer DB name)
+    const finalDisplayName = (name && name.trim()) ? name : (email ? email.split('@')[0] : 'User');
+    const response = { _id, googleId, name, displayName: finalDisplayName, email, role, storeId, plan: plan || 'free', skuCount: skuCount || 0 };
     res.json(response);
 });
 

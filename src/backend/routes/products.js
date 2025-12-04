@@ -1,5 +1,7 @@
 const express = require('express');
 const Product = require('../models/Product');
+const User = require('../models/UserModel');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -27,20 +29,35 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create new product
-router.post('/', async (req, res) => {
-  const product = new Product({
-    name: req.body.name,
-    description: req.body.description,
-    price: req.body.price,
-    category: req.body.category,
-    stock: req.body.stock,
-    threshold: req.body.threshold,
-    expiryDate: req.body.expiryDate,
-    soldLastMonth: req.body.soldLastMonth
-  });
-
+router.post('/', authMiddleware, async (req, res) => {
   try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.plan === 'free' && user.skuCount >= 100) {
+      return res.status(403).json({ message: 'You have reached the maximum number of SKUs for the free plan.' });
+    }
+
+    if (user.plan === 'premium' && user.skuCount >= 250) {
+      return res.status(403).json({ message: 'You have reached the maximum number of SKUs for the premium plan.' });
+    }
+
+    const product = new Product({
+      name: req.body.name,
+      description: req.body.description,
+      price: req.body.price,
+      category: req.body.category,
+      stock: req.body.stock,
+      threshold: req.body.threshold,
+      expiryDate: req.body.expiryDate,
+      soldLastMonth: req.body.soldLastMonth
+    });
+
     const newProduct = await product.save();
+    user.skuCount += 1;
+    await user.save();
     res.status(201).json(newProduct);
   } catch (error) {
     res.status(400).json({ message: error.message });

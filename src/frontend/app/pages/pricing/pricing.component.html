@@ -1,0 +1,53 @@
+<div class="container">
+  <div *ngIf="loading" class="alert alert-info">Loading current plan...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div class="row mt-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Free Trial</h4>
+          <span *ngIf="currentPlan === 'free'" class="badge bg-success ms-2">Current Plan</span>
+        </div>
+        <div class="card-body">
+          <h5 class="card-price">$0</h5>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">100 SKUs for 1 Shop</li>
+          </ul>
+          <a href="#" class="btn btn-primary" [class.disabled-link]="currentPlan === 'free'" (click)="onPlanClick($event, 'free')">
+            {{ currentPlan === 'free' ? 'Current Plan' : 'Choose Free' }}
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Most Popular<br>Premium Plan</h4>
+        </div>
+        <div class="card-body">
+          <h5 class="card-price">$99</h5>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">250 SKUs for 2 Shops</li>
+          </ul>
+          <a [routerLink]="['/payment']" [queryParams]="{ type: 'premium' }" class="btn btn-success" [class.disabled-link]="currentPlan === 'premium'" (click)="onPlanClick($event, 'premium')">
+            {{ currentPlan === 'premium' ? 'Current Plan' : 'Upgrade to Premium' }}
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">Add Ons</h4>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">Per 100 SKUs: $39</li>
+            <li class="list-group-item">Per additional Shop: $59</li>
+          </ul>
+          <a [routerLink]="['/payment']" [queryParams]="{ type: 'addons', addCount: 100 }" class="btn btn-info" (click)="onPlanClick($event, 'addons', 100)">Purchase Add Ons</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
