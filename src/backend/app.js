@@ -17,12 +17,11 @@ const paymentRoutes = require('./routes/payment');
 dotenv.config();
 const app = express();
 
-// --------------------------------------------------------------------------------------
 // CORS CONFIG
 // --------------------------------------------------------------------------------------
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? /\.azurewebsites\.net$/
+    ? true  // Allow all origins in production (served from same domain)
     : ['http://localhost:4200', 'http://localhost:3000'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -92,28 +91,34 @@ app.get('/api', (req, res) => {
 // SERVE ANGULAR FRONTEND
 // --------------------------------------------------------------------------------------
 
-// Example folder: backend/angular/smartstock
-// You MUST replace <your-folder> with the actual name
+const distPath = path.join(__dirname, 'dist');
 
-const angularFolder = path.join(__dirname, 'angular');
-const folders = require('fs').readdirSync(angularFolder);
-
-// Find first directory inside backend/angular (the Angular build folder)
-const angularAppFolder = folders.find(f => 
-  require('fs').statSync(path.join(angularFolder, f)).isDirectory()
-);
-
-const angularDistPath = path.join(angularFolder, angularAppFolder);
-
-console.log("Serving Angular from:", angularDistPath);
-
-// Serve static files
-app.use(express.static(angularDistPath));
-
-// Handle Angular's routing (send index.html for unknown routes)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(angularDistPath, 'index.html'));
-});
-
-// --------------------------------------------------------------------------------------
+// Check if dist folder exists
+if (require('fs').existsSync(distPath)) {
+  console.log('Serving Angular from:', distPath);
+  app.use(express.static(distPath));
+  
+  // Handle Angular's routing (send index.html for unknown routes)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  console.warn('Warning: dist folder not found at', distPath);
+  // Fallback: try to serve from angular folder (backward compatibility)
+  const angularFolder = path.join(__dirname, 'angular');
+  if (require('fs').existsSync(angularFolder)) {
+    const folders = require('fs').readdirSync(angularFolder);
+    const angularAppFolder = folders.find(f => 
+      require('fs').statSync(path.join(angularFolder, f)).isDirectory()
+    );
+    if (angularAppFolder) {
+      const angularDistPath = path.join(angularFolder, angularAppFolder);
+      console.log('Serving Angular from fallback path:', angularDistPath);
+      app.use(express.static(angularDistPath));
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(angularDistPath, 'index.html'));
+      });
+    }
+  }
+}
 module.exports = app;
