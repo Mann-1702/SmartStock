@@ -16,12 +16,15 @@ dotenv.config();
 const app = express();
 
 // CORS + Middleware
-app.use(cors({
-  origin: 'http://localhost:4200',
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? /\.azurewebsites\.net$/ // Allow Azure web app domains
+    : ['http://localhost:4200', 'http://localhost:3000'], // Allow local dev
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET','POST','PUT','DELETE','OPTIONS']
-}));
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Use passport without express session; we'll issue JWTs instead
@@ -73,8 +76,16 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/autoorders', autoOrderRoutes);
 app.use('/api/payment', paymentRoutes);
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({ message: 'Welcome to SmartStock Backend API' });
+});
+
+// Serve Angular frontend dist folder
+app.use('/', express.static(__dirname + '/dist'));
+
+// For all other routes not matching above, serve index.html (for Angular routing)
+app.get('*', (req, res) => {
+  res.sendFile(__dirname + '/dist/index.html');
 });
 
 module.exports = app;
