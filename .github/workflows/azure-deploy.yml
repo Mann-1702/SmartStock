@@ -1,0 +1,60 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+      - email_Service
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: smartstock
+  AZURE_WEBAPP_PACKAGE_PATH: './src/backend'
+  NODE_VERSION: '18.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    # Build Angular Frontend
+    - name: Install frontend dependencies
+      run: npm ci
+
+    - name: Build Angular frontend
+      run: npm run build --if-present
+
+    - name: Copy frontend build to backend
+      run: |
+        mkdir -p src/backend/dist
+        cp -r dist/smartstock-frontend/* src/backend/dist/
+
+    # Prepare Backend
+    - name: Install backend dependencies
+      working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+      run: npm ci --omit=dev
+
+    - name: Verify dist folder exists
+      working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+      run: |
+        echo "Checking dist folder..."
+        ls -la dist/
+        echo "Found index.html:"
+        ls -la dist/index.html
+
+    # Deploy to Azure
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}

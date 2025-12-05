@@ -2,6 +2,8 @@
 
 # Compiled output
 /dist
+# BUT include backend dist for deployment
+!/src/backend/dist
 /tmp
 /out-tsc
 /bazel-out
