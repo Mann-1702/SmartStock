@@ -1,7 +1,8 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # Compiled output
-/dist
+# DO NOT ignore dist in backend - it contains the frontend build!
+# /dist
 /tmp
 /out-tsc
 /bazel-out
