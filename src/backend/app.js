@@ -96,19 +96,36 @@ const distPath = path.join(__dirname, 'dist');
 // Check if dist folder exists
 if (require('fs').existsSync(distPath)) {
   console.log('Serving Angular from:', distPath);
-  app.use(express.static(distPath));
-  
+  app.use(express.static(distPath, {
+    maxAge: '1d',
+    setHeaders: (res, filepath) => {
+      if (filepath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    }
+  }));
+
   // Handle Angular's routing (send index.html for unknown routes)
   app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
+    const indexPath = path.join(distPath, 'index.html');
+    console.log('Serving index.html from:', indexPath);
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('Error serving index.html:', err);
+        res.status(500).send('Application Error - index.html not found');
+      }
+    });
   });
 } else {
   console.warn('Warning: dist folder not found at', distPath);
+  console.warn('Current directory:', __dirname);
+  console.warn('Looking for dist at:', distPath);
+
   // Fallback: try to serve from angular folder (backward compatibility)
   const angularFolder = path.join(__dirname, 'angular');
   if (require('fs').existsSync(angularFolder)) {
     const folders = require('fs').readdirSync(angularFolder);
-    const angularAppFolder = folders.find(f => 
+    const angularAppFolder = folders.find(f =>
       require('fs').statSync(path.join(angularFolder, f)).isDirectory()
     );
     if (angularAppFolder) {
@@ -118,7 +135,15 @@ if (require('fs').existsSync(distPath)) {
       app.get('*', (req, res) => {
         res.sendFile(path.join(angularDistPath, 'index.html'));
       });
+    } else {
+      console.error('No Angular app folder found in:', angularFolder);
     }
+  } else {
+    console.error('Neither dist nor angular folder found!');
+    app.get('*', (_req, res) => {
+      res.status(500).send('Application Error - Frontend files not found. Please ensure the build completed successfully.');
+    });
   }
 }
+
 module.exports = app;
