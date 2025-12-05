@@ -44,7 +44,7 @@
     </div>
   </div>
 
-  <!-- ROW 2: Bar Chart (Full Width) -->
+    <!-- ROW 2: Bar Chart (Full Width) -->
   <div class="row g-3 mb-4">
     <div class="col-12">
       <div class="card">
@@ -57,28 +57,6 @@
     </div>
   </div>
 
-  <!-- ROW 3: Line Chart + Top Selling Chart -->
-  <div class="row g-3 mb-4">
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-body">
-          <div style="height: 300px;">
-            <canvas id="salesLineChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-body">
-          <div style="height: 300px;">
-            <canvas id="topSellingChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
   
   <!-- ROW 4: Complete Editable Data Table -->
   <div class="row g-3 mb-4">
@@ -178,12 +156,15 @@
   <div class="row g-3 mb-4">
     <div class="col-12">
       <div class="card">
-        <div class="card-header bg-success text-white">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
           <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> Auto Reorder (Pending Vendor Orders)</h5>
+          <button class="btn btn-light btn-sm" (click)="scanLowStock()" title="Scan all products and create auto-orders for low-stock items">
+            <i class="bi bi-search"></i> Scan Low Stock
+          </button>
         </div>
         <div class="card-body">
           <div *ngIf="autoOrderItems.length === 0" class="alert alert-info">
-            <i class="bi bi-info-circle"></i> No pending auto-orders at the moment. Orders will appear here when stock falls below threshold.
+            <i class="bi bi-info-circle"></i> No pending auto-orders at the moment. Click "Scan Low Stock" to check for items below threshold, or orders will appear automatically when stock falls below threshold during checkout.
           </div>
           <div *ngIf="autoOrderItems.length > 0" class="table-responsive">
             <table class="table table-hover">

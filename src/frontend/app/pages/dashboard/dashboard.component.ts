@@ -44,11 +44,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
   outOfStockCount: number = 0;
   expiringItems: InventoryItem[] = [];
 
+  // Polling interval for real-time updates
+  private refreshInterval: any;
+
   constructor(private productService: ProductService, private autoorderService: AutoorderService) {}
 
   ngOnInit(): void {
     this.loadProducts();
     this.loadAutoOrders();
+
+    // ✅ NEW: Auto-refresh dashboard every 10 seconds
+    this.refreshInterval = setInterval(() => {
+      this.loadProducts();
+      this.loadAutoOrders();
+    }, 10000);
   }
 
   loadProducts(): void {
@@ -106,6 +115,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // ✅ NEW: Clear polling interval on component destroy
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+
     if (this.categoryChart) this.categoryChart.destroy();
     if (this.salesLineChart) this.salesLineChart.destroy();
     if (this.topSellingChart) this.topSellingChart.destroy();
@@ -450,7 +464,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (index !== -1) {
           this.autoOrderItems[index] = updatedAutoOrder;
         }
-        alert(`Auto-order status updated to ${newStatus}`);
+
+        // ✅ NEW: Show stock update confirmation for received orders
+        if (newStatus === 'received') {
+          alert(`Auto-order marked as received! Stock has been updated for ${autoOrder.productName}. (+${autoOrder.orderedQuantity} units added)`);
+          // Refresh products to show updated stock
+          this.loadProducts();
+        } else {
+          alert(`Auto-order status updated to ${newStatus}`);
+        }
       },
       error: (error) => {
         console.error('Error updating auto-order status:', error);
@@ -469,6 +491,51 @@ export class DashboardComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error deleting auto-order:', error);
           alert('Error deleting auto-order');
+        }
+      });
+    }
+  }
+
+  // ✅ NEW: Scan and create auto-orders for all low-stock items
+  scanLowStock(): void {
+    if (confirm('Scan all products and create/update auto-orders?\n\nThis will:\n1. Create new auto-orders for low-stock items\n2. Update existing auto-orders to use the new quantity formula (threshold × 2)')) {
+      // First update existing auto-order quantities
+      this.autoorderService.updateAutoOrderQuantities().subscribe({
+        next: (updateResult) => {
+          console.log('Updated auto-order quantities:', updateResult);
+
+          // Then scan for new low-stock items
+          this.autoorderService.scanLowStock().subscribe({
+            next: (scanResult) => {
+              const message = `Scan and Update Complete!\n\n` +
+                `UPDATED EXISTING AUTO-ORDERS:\n` +
+                `• Updated: ${updateResult.updated} auto-orders\n` +
+                `• Already correct: ${updateResult.skipped}\n\n` +
+                `NEW AUTO-ORDERS:\n` +
+                `• Created: ${scanResult.createdOrders}\n` +
+                `• Skipped (already exist): ${scanResult.skippedProducts}\n\n` +
+                (updateResult.details.updated.length > 0 ?
+                  `Updated quantities:\n${updateResult.details.updated.map((item: any) =>
+                    `• ${item.productName}: ${item.oldQuantity} → ${item.newQuantity} units`
+                  ).join('\n')}\n\n` : '') +
+                (scanResult.details.created.length > 0 ?
+                  `Created orders:\n${scanResult.details.created.map((item: any) =>
+                    `• ${item.productName}: ${item.orderedQuantity} units (threshold: ${item.threshold})`
+                  ).join('\n')}` : '');
+
+              alert(message);
+              this.loadAutoOrders(); // Refresh auto-orders list
+              this.loadProducts(); // Refresh products
+            },
+            error: (error) => {
+              console.error('Error scanning low stock:', error);
+              alert('Error scanning products. Please try again.');
+            }
+          });
+        },
+        error: (error) => {
+          console.error('Error updating auto-order quantities:', error);
+          alert('Error updating quantities. Please try again.');
         }
       });
     }

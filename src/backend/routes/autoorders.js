@@ -70,14 +70,30 @@ router.put('/:id/status', async (req, res) => {
       return res.status(404).json({ message: 'Auto-order not found' });
     }
 
-    if (req.body.status) {
-      autoOrder.status = req.body.status;
+    const oldStatus = autoOrder.status;
+    const newStatus = req.body.status;
+
+    // Update auto-order fields
+    if (newStatus) {
+      autoOrder.status = newStatus;
     }
     if (req.body.vendorOrderId) {
       autoOrder.vendorOrderId = req.body.vendorOrderId;
     }
     if (req.body.notes) {
       autoOrder.notes = req.body.notes;
+    }
+
+    // ✅ NEW: Update product stock when status changes to 'received'
+    if (newStatus === 'received' && oldStatus !== 'received') {
+      const product = await Product.findById(autoOrder.productId);
+      if (product) {
+        product.stock += autoOrder.orderedQuantity;
+        await product.save();
+        console.log(`✅ Stock updated for ${product.name}: +${autoOrder.orderedQuantity} units (new stock: ${product.stock})`);
+      } else {
+        console.warn(`⚠️ Product not found for auto-order ${autoOrder._id}`);
+      }
     }
 
     const updatedAutoOrder = await autoOrder.save();
@@ -111,6 +127,127 @@ router.get('/stats/summary', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// POST scan and create auto-orders for low-stock items
+router.post('/scan-low-stock', async (req, res) => {
+  try {
+    const products = await Product.find();
+    const createdOrders = [];
+    const skippedProducts = [];
+
+    for (const product of products) {
+      // Check if stock is below threshold
+      if (product.stock < product.threshold) {
+        // Check if auto-order already exists
+        const existingAutoOrder = await AutoOrder.findOne({
+          productId: product._id,
+          status: { $in: ['pending', 'ordered'] }
+        });
+
+        if (!existingAutoOrder) {
+          const orderedQuantity = product.threshold * 2;
+          const autoOrder = new AutoOrder({
+            productId: product._id,
+            productName: product.name,
+            orderedQuantity: orderedQuantity,
+            currentStock: product.stock,
+            threshold: product.threshold,
+            status: 'ordered'
+          });
+
+          await autoOrder.save();
+          createdOrders.push({
+            productName: product.name,
+            currentStock: product.stock,
+            threshold: product.threshold,
+            orderedQuantity: orderedQuantity
+          });
+        } else {
+          skippedProducts.push({
+            productName: product.name,
+            reason: 'Auto-order already exists'
+          });
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Scanned ${products.length} products`,
+      createdOrders: createdOrders.length,
+      skippedProducts: skippedProducts.length,
+      details: {
+        created: createdOrders,
+        skipped: skippedProducts
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// POST update all pending/ordered auto-orders to use new quantity formula (threshold * 2)
+router.post('/update-quantities', async (req, res) => {
+  try {
+    const autoOrders = await AutoOrder.find({
+      status: { $in: ['pending', 'ordered'] }
+    }).populate('productId');
+
+    const updated = [];
+    const skipped = [];
+
+    for (const autoOrder of autoOrders) {
+      if (!autoOrder.productId) {
+        skipped.push({
+          productName: autoOrder.productName,
+          reason: 'Product not found'
+        });
+        continue;
+      }
+
+      const product = autoOrder.productId;
+      const newQuantity = product.threshold * 2;
+      const oldQuantity = autoOrder.orderedQuantity;
+
+      if (newQuantity !== oldQuantity) {
+        autoOrder.orderedQuantity = newQuantity;
+        autoOrder.threshold = product.threshold; // Update threshold too
+        await autoOrder.save();
+
+        updated.push({
+          productName: product.name,
+          oldQuantity: oldQuantity,
+          newQuantity: newQuantity,
+          threshold: product.threshold
+        });
+      } else {
+        skipped.push({
+          productName: product.name,
+          reason: 'Already using correct quantity'
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Updated ${updated.length} auto-orders`,
+      updated: updated.length,
+      skipped: skipped.length,
+      details: {
+        updated: updated,
+        skipped: skipped
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 });
 

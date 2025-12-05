@@ -68,4 +68,14 @@ export class AutoorderService {
   deleteAutoOrder(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  // Scan all products and create auto-orders for low-stock items
+  scanLowStock(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/scan-low-stock`, {});
+  }
+
+  // Update all existing auto-order quantities to use new formula (threshold * 2)
+  updateAutoOrderQuantities(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/update-quantities`, {});
+  }
 }

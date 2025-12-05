@@ -129,12 +129,12 @@ router.post('/checkout', authMiddleware, async (req, res) => {
 
         // Check if stock is now below threshold and create auto-order
         if (product && product.stock < product.threshold) {
-          const orderedQuantity = product.threshold - product.stock;
+          const orderedQuantity = product.threshold * 2;
           
-          // Check if there's already a pending auto-order for this product
+          // Check if there's already a pending or ordered auto-order for this product
           const existingAutoOrder = await AutoOrder.findOne({
             productId: product._id,
-            status: 'pending'
+            status: { $in: ['pending', 'ordered'] }
           });
 
           if (!existingAutoOrder) {
